@@ -5,13 +5,15 @@
 #include <stdio.h>
 
 int main(int argc, char** argv) {
-    const size_t N = 512UL;
-    size_t       i, j;
-    int *        rz = (int*)malloc(N * N * sizeof(int)),
-        *iz         = (int*)malloc(N * N * sizeof(int)),
-        *R          = (int*)malloc(N * N * sizeof(int)),
-        *G          = (int*)malloc(N * N * sizeof(int)),
-        *B          = (int*)malloc(N * N * sizeof(int));
+    const size_t N = 1024UL;
+
+    size_t i, j;
+
+    int* rz = (int*)malloc(N * N * sizeof(int));
+    int* iz = (int*)malloc(N * N * sizeof(int));
+    int* R  = (int*)malloc(N * N * sizeof(int));
+    int* G  = (int*)malloc(N * N * sizeof(int));
+    int* B  = (int*)malloc(N * N * sizeof(int));
 
     for (i = 0; i < N; i++)
         for (j = 0; j < N; j++) {
@@ -131,11 +133,20 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    cl_mem N_mem_obj =
+        clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(size_t), NULL, &err);
+
+    if (err != CL_SUCCESS) {
+        printf("Error: %d. OpenCL could not create buffer.", err);
+        return -1;
+    }
+
     err = clEnqueueWriteBuffer(queue, rz_mem_obj, CL_TRUE, 0,
                                sizeof(float) * N * N, rz, 0, NULL, NULL);
     err |= clEnqueueWriteBuffer(queue, iz_mem_obj, CL_TRUE, 0,
                                 sizeof(float) * N * N, iz, 0, NULL, NULL);
-
+    err |= clEnqueueWriteBuffer(queue, N_mem_obj, CL_TRUE, 0, sizeof(size_t),
+                                &N, 0, NULL, NULL);
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not write buffer.", err);
         return -1;
@@ -146,6 +157,7 @@ int main(int argc, char** argv) {
     err |= clSetKernelArg(kernel, 2, sizeof(r_mem_obj), (void*)&r_mem_obj);
     err |= clSetKernelArg(kernel, 3, sizeof(g_mem_obj), (void*)&g_mem_obj);
     err |= clSetKernelArg(kernel, 4, sizeof(b_mem_obj), (void*)&b_mem_obj);
+    err |= clSetKernelArg(kernel, 5, sizeof(N_mem_obj), (void*)&N_mem_obj);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not set kernel arguments.", err);

@@ -1,11 +1,12 @@
 __kernel void set(__global const int* rz, __global const int* iz,
-                  __global int* Red, __global int* Green, __global int* Blue) {
+                  __global int* Red, __global int* Green, __global int* Blue,
+                  __global const size_t* N) {
     int i = get_global_id(0);
 
     // map [0, 512] to [-2, 2]
-    float       alpha  = (float)rz[i] / 512.0f;
+    float       alpha  = (float)rz[i] / (float)*N;
     const float c_real = alpha * 4.0f - 2.0f;
-    alpha              = (float)iz[i] / 512.0f;
+    alpha              = (float)iz[i] / (float)*N;
     const float c_imag = alpha * 4.0f - 2.0f;
 
     float real = c_real, imag = c_imag, real_ = 0.0f, imag_ = 0.0f, r_sq = 0.0f;

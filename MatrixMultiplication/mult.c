@@ -4,23 +4,25 @@
 
 #include <CL/cl.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char **argv) {
     cl_int err;
 
-    // Create the two input matrices for multiplication
     size_t       i;
-    int          k         = 2;
+    int          k         = 5;
     const size_t LIST_SIZE = k * k;
     float       *A         = (float *)malloc(LIST_SIZE * sizeof(float));
     float       *B         = (float *)malloc(LIST_SIZE * sizeof(float));
     float       *C         = (float *)malloc(LIST_SIZE * sizeof(float));
 
     for (i = 0; i < LIST_SIZE; i++) {
-        A[i] = 1.0f;
-        B[i] = 1.0f;
-    }
-    for (i = 0; i < k; i++) B[i * k] = 0.5f;
+        A[i] = rand() / (float)RAND_MAX;
+        B[i] = rand() / (float)RAND_MAX;
+        }
+
+
+    for (i = 0; i < (size_t)k; i++) B[i * k] = 0.5f;
 
     cl_device_id device_id;
 
