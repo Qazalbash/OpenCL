@@ -5,7 +5,7 @@
 #include <CL/cl.h>
 #include <stdio.h>
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     cl_int err;
 
     cl_device_id device_id;
@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    FILE* fp = fopen("kernel.cl", "r");
+    FILE *fp = fopen("kernel.cl", "r");
     fseek(fp, 0, SEEK_END);
     size_t size = ftell(fp);
 
@@ -41,12 +41,12 @@ int main(int argc, char** argv) {
     }
 
     fseek(fp, 0, SEEK_SET);
-    char* source = (char*)malloc(size);
+    char *source = (char *)malloc(size);
     fread(source, 1, size, fp);
     fclose(fp);
 
     cl_program program = clCreateProgramWithSource(
-        context, 1, (const char**)&source, &size, &err);
+        context, 1, (const char **)&source, &size, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create program.", err);
@@ -77,14 +77,6 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    err = clEnqueueWriteBuffer(queue, a_memobj, CL_TRUE, 0, sizeof(a), &a, 0,
-                               NULL, NULL);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not write buffer.", err);
-        return -1;
-    }
-
     cl_mem b_memobj =
         clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(cl_int), NULL, &err);
 
@@ -93,8 +85,10 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    err = clEnqueueWriteBuffer(queue, b_memobj, CL_TRUE, 0, sizeof(b), &b, 0,
+    err = clEnqueueWriteBuffer(queue, a_memobj, CL_TRUE, 0, sizeof(a), &a, 0,
                                NULL, NULL);
+    err |= clEnqueueWriteBuffer(queue, b_memobj, CL_TRUE, 0, sizeof(b), &b, 0,
+                                NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not write buffer.", err);
@@ -109,21 +103,9 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    err = clSetKernelArg(kernel, 0, sizeof(a_memobj), (void*)&a_memobj);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not set kernel arguments.", err);
-        return -1;
-    }
-
-    err = clSetKernelArg(kernel, 1, sizeof(b_memobj), (void*)&b_memobj);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not set kernel arguments.", err);
-        return -1;
-    }
-
-    err = clSetKernelArg(kernel, 2, sizeof(c_memobj), (void*)&c_memobj);
+    err = clSetKernelArg(kernel, 0, sizeof(a_memobj), (void *)&a_memobj);
+    err |= clSetKernelArg(kernel, 1, sizeof(b_memobj), (void *)&b_memobj);
+    err |= clSetKernelArg(kernel, 2, sizeof(c_memobj), (void *)&c_memobj);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not set kernel arguments.", err);
@@ -184,20 +166,8 @@ int main(int argc, char** argv) {
     }
 
     err = clReleaseMemObject(a_memobj);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not release buffer.", err);
-        return -1;
-    }
-
-    err = clReleaseMemObject(b_memobj);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not release buffer.", err);
-        return -1;
-    }
-
-    err = clReleaseMemObject(c_memobj);
+    err |= clReleaseMemObject(b_memobj);
+    err |= clReleaseMemObject(c_memobj);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not release buffer.", err);

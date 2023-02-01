@@ -1,9 +1,14 @@
-all:
-	gcc hello.c -Wall -Wextra -o hello -l OpenCL
+CC = gcc
+CFLAGS = -Wall -Wextra
+LDFLAGS = -l OpenCL
+SRC = hello.c
+EXEC = hello
 
-run:
-	./hello
+$(EXEC): $(SRC)
+	$(CC) $(CFLAGS) $(SRC) -o $(EXEC) $(LDFLAGS)
+
+run: $(EXEC)
+	./$(EXEC)
 
 clean:
-	rm hello
-
+	rm -rf *.o $(EXEC) *.bin *.out

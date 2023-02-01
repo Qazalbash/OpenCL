@@ -1,8 +1,14 @@
-all: mult.c
-	gcc mult.c -Wall -Wextra -o mult -l OpenCL
+CC = gcc
+CFLAGS = -Wall -Wextra
+LDFLAGS = -l OpenCL
+SRC = mult.c
+EXEC = mult
+
+$(EXEC): $(SRC)
+	$(CC) $(CFLAGS) $(SRC) -o $(EXEC) $(LDFLAGS)
+
+run: $(EXEC)
+	./$(EXEC)
 
 clean:
-	rm -f mult
-
-run: all
-	./mult
+	rm -rf *.o $(EXEC) *.bin *.out

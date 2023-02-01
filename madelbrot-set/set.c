@@ -1,3 +1,6 @@
+#ifndef SET_GAURD
+#define SET_GAURD
+
 #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #define CL_TARGET_OPENCL_VERSION 300
 
@@ -243,3 +246,5 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+
+#endif  // SET_GAURD

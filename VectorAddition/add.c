@@ -104,14 +104,8 @@ int main(int argc, char** argv) {
 
     err = clEnqueueWriteBuffer(queue, a_memobj, CL_TRUE, 0, N * sizeof(int), a,
                                0, NULL, NULL);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not write buffer.", err);
-        return -1;
-    }
-
-    err = clEnqueueWriteBuffer(queue, b_memobj, CL_TRUE, 0, N * sizeof(int), b,
-                               0, NULL, NULL);
+    err |= clEnqueueWriteBuffer(queue, b_memobj, CL_TRUE, 0, N * sizeof(int), b,
+                                0, NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not write buffer.", err);
@@ -119,28 +113,15 @@ int main(int argc, char** argv) {
     }
 
     err = clSetKernelArg(kernel, 0, sizeof(a_memobj), (void*)&a_memobj);
+    err |= clSetKernelArg(kernel, 1, sizeof(b_memobj), (void*)&b_memobj);
+    err |= clSetKernelArg(kernel, 2, sizeof(c_memobj), (void*)&c_memobj);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not set kernel arguments.", err);
         return -1;
     }
 
-    err = clSetKernelArg(kernel, 1, sizeof(b_memobj), (void*)&b_memobj);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not set kernel arguments.", err);
-        return -1;
-    }
-
-    err = clSetKernelArg(kernel, 2, sizeof(c_memobj), (void*)&c_memobj);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not set kernel arguments.", err);
-        return -1;
-    }
-
-    size_t global_item_size = N;
-    size_t local_item_size  = 8;
+    size_t global_item_size = N, local_item_size = 8;
 
     err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global_item_size,
                                  &local_item_size, 0, NULL, NULL);
@@ -196,20 +177,8 @@ int main(int argc, char** argv) {
     }
 
     err = clReleaseMemObject(a_memobj);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not release buffer.", err);
-        return -1;
-    }
-
-    err = clReleaseMemObject(b_memobj);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not release buffer.", err);
-        return -1;
-    }
-
-    err = clReleaseMemObject(c_memobj);
+    err |= clReleaseMemObject(b_memobj);
+    err |= clReleaseMemObject(c_memobj);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not release buffer.", err);

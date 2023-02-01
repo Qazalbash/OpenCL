@@ -1,3 +1,6 @@
+#ifndef MAT_MUL_GAURD
+#define MAT_MUL_GAURD
+
 #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #define CL_TARGET_OPENCL_VERSION 300
 #define MAX_SOURCE_SIZE          (0x100000)
@@ -9,18 +12,19 @@
 int main(int argc, char **argv) {
     cl_int err;
 
-    size_t       i;
-    int          k         = 5;
-    const size_t LIST_SIZE = k * k;
-    float       *A         = (float *)malloc(LIST_SIZE * sizeof(float));
-    float       *B         = (float *)malloc(LIST_SIZE * sizeof(float));
-    float       *C         = (float *)malloc(LIST_SIZE * sizeof(float));
+    int k = 5;
 
+    const size_t LIST_SIZE = k * k;
+
+    float *A = (float *)malloc(LIST_SIZE * sizeof(float));
+    float *B = (float *)malloc(LIST_SIZE * sizeof(float));
+    float *C = (float *)malloc(LIST_SIZE * sizeof(float));
+
+    size_t i;
     for (i = 0; i < LIST_SIZE; i++) {
         A[i] = rand() / (float)RAND_MAX;
         B[i] = rand() / (float)RAND_MAX;
-        }
-
+    }
 
     for (i = 0; i < (size_t)k; i++) B[i * k] = 0.5f;
 
@@ -89,10 +93,10 @@ int main(int argc, char **argv) {
     // Copy the lists A and B to their respective memory buffers
     err = clEnqueueWriteBuffer(queue, a_mem_obj, CL_TRUE, 0,
                                LIST_SIZE * sizeof(float), A, 0, NULL, NULL);
-    err = clEnqueueWriteBuffer(queue, b_mem_obj, CL_TRUE, 0,
-                               LIST_SIZE * sizeof(float), B, 0, NULL, NULL);
-    err = clEnqueueWriteBuffer(queue, k_mem_obj, CL_TRUE, 0, sizeof(int), &k, 0,
-                               NULL, NULL);
+    err |= clEnqueueWriteBuffer(queue, b_mem_obj, CL_TRUE, 0,
+                                LIST_SIZE * sizeof(float), B, 0, NULL, NULL);
+    err |= clEnqueueWriteBuffer(queue, k_mem_obj, CL_TRUE, 0, sizeof(int), &k,
+                                0, NULL, NULL);
 
     // Create the OpenCL kernel
     cl_kernel kernel = clCreateKernel(program, "matrix_multiplication", &err);
@@ -141,14 +145,14 @@ int main(int argc, char **argv) {
 
     // Clean up
     err = clFlush(queue);
-    err = clFinish(queue);
-    err = clReleaseKernel(kernel);
-    err = clReleaseProgram(program);
-    err = clReleaseMemObject(a_mem_obj);
-    err = clReleaseMemObject(b_mem_obj);
-    err = clReleaseMemObject(c_mem_obj);
-    err = clReleaseCommandQueue(queue);
-    err = clReleaseContext(context);
+    err |= clFinish(queue);
+    err |= clReleaseKernel(kernel);
+    err |= clReleaseProgram(program);
+    err |= clReleaseMemObject(a_mem_obj);
+    err |= clReleaseMemObject(b_mem_obj);
+    err |= clReleaseMemObject(c_mem_obj);
+    err |= clReleaseCommandQueue(queue);
+    err |= clReleaseContext(context);
 
     free(source);
     free(A);
@@ -157,3 +161,5 @@ int main(int argc, char **argv) {
 
     return 0;
 }
+
+#endif

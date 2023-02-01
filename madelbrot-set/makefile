@@ -1,9 +1,14 @@
-all: set.c kernel.cl
-	gcc set.c -Wall -Wextra -o set -l OpenCL
+CC = gcc
+CFLAGS = -Wall -Wextra
+LDFLAGS = -l OpenCL
+SRC = set.c
+EXEC = set
 
-run: all
-	./set
-	code mandelbrot.ppm
+$(EXEC): $(SRC)
+	$(CC) $(CFLAGS) $(SRC) -o $(EXEC) $(LDFLAGS)
 
-clean: set
-	rm ./set
+run: $(EXEC)
+	./$(EXEC)
+
+clean:
+	rm -rf *.o $(EXEC) *.bin *.out *.ppm

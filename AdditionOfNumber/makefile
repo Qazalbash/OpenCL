@@ -1,8 +1,15 @@
-all: add.c
-	gcc add.c -Wall -Wextra -o add -l OpenCL
+CC = gcc
+CFLAGS = -Wall -Wextra
+LDFLAGS = -l OpenCL
+SRC = add.c
+EXEC = add
 
-run:
-	./add
-	
+
+$(EXEC): $(SRC)
+	$(CC) $(CFLAGS) $(SRC) -o $(EXEC) $(LDFLAGS)
+
+run: $(EXEC)
+	./$(EXEC)
+
 clean:
-	rm -f add
+	rm -rf *.o $(EXEC) *.bin *.out 
