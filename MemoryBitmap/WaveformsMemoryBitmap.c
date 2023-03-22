@@ -3,9 +3,38 @@
 #define MAX_SOURCE_SIZE          (0x100000)
 
 #include <CL/cl.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-int main(int argc, char **argv) {
+const uint32_t WIDTH               = 512;
+const uint32_t HEIGHT              = 512;
+const uint32_t SIZE                = WIDTH * HEIGHT;
+const uint32_t IMAGE_SIZE_IN_BYTES = SIZE * sizeof(uint8_t) * 4;
+
+typedef struct {
+    uint32_t x, y, z;
+} dim;
+
+void load_raw_image(const char* imageName, uint8_t* pData) {
+    FILE* fp = fopen(imageName, "rb");
+    if (fp) {
+        fread(pData, 1, SIZE, fp);
+        fclose(fp);
+    } else
+        puts("Cannot open raw image.");
+}
+
+void save_raw_image(const char* imageName, uint8_t* pData) {
+    FILE* fp = fopen(imageName, "wb");
+    if (fp) {
+        fwrite(pData, 4 * sizeof(uint8_t), SIZE, fp);
+        fclose(fp);
+    } else
+        puts("Cannot write raw image.");
+}
+
+int main(void) {
     cl_int err;
 
     cl_device_id device_id;
@@ -31,21 +60,21 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    FILE *fp = fopen("kernel.cl", "r");
+    FILE* fp = fopen("kernel.cl", "r");
     fseek(fp, 0, SEEK_END);
     size_t size = ftell(fp);
 
     if (size == 0) {
-        printf("Error: %d. kernel file has no function.", 1);
+        printf("Error: %d. kernel file has no function.", err);
         return -1;
     }
 
     fseek(fp, 0, SEEK_SET);
-    char *source = (char *)malloc(size);
+    char* source = (char*)malloc(size);
     fread(source, 1, size, fp);
     fclose(fp);
 
-    cl_program program = clCreateProgramWithSource(context, 1, (const char **)&source, &size, &err);
+    cl_program program = clCreateProgramWithSource(context, 1, (const char**)&source, &size, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create program.", err);
@@ -59,75 +88,49 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    cl_kernel kernel = clCreateKernel(program, "add", &err);
+    cl_mem bitmap_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY, IMAGE_SIZE_IN_BYTES, NULL, &err);
+
+    if (err != CL_SUCCESS) {
+        printf("Error: %d. OpenCL could not create buffer.", err);
+        return -1;
+    }
+
+    cl_kernel kernel = clCreateKernel(program, "WaveMakeImageKernel", &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create kernel.", err);
         return -1;
     }
 
-    int a = 2, b = 1, c;
-
-    cl_mem a_memobj = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(cl_int), NULL, &err);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not create buffer.", err);
-        return -1;
-    }
-
-    cl_mem b_memobj = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(cl_int), NULL, &err);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not create buffer.", err);
-        return -1;
-    }
-
-    err = clEnqueueWriteBuffer(queue, a_memobj, CL_TRUE, 0, sizeof(a), &a, 0, NULL, NULL);
-    err |= clEnqueueWriteBuffer(queue, b_memobj, CL_TRUE, 0, sizeof(b), &b, 0, NULL, NULL);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not write buffer.", err);
-        return -1;
-    }
-
-    cl_mem c_memobj = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_int), NULL, &err);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not create buffer.", err);
-        return -1;
-    }
-
-    err = clSetKernelArg(kernel, 0, sizeof(a_memobj), (void *)&a_memobj);
-    err |= clSetKernelArg(kernel, 1, sizeof(b_memobj), (void *)&b_memobj);
-    err |= clSetKernelArg(kernel, 2, sizeof(c_memobj), (void *)&c_memobj);
+    err = clSetKernelArg(kernel, 0, sizeof(bitmap_mem_obj), (void*)&bitmap_mem_obj);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not set kernel arguments.", err);
         return -1;
     }
 
-    err = clEnqueueNDRangeKernel(queue, kernel, 0, NULL, NULL, NULL, 0, NULL, NULL);
+    const size_t global_item_size[] = {WIDTH, HEIGHT};
+    const size_t local_item_size[]  = {16, 16};
+
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, (const size_t*)&global_item_size,
+                                 (const size_t*)&local_item_size, 0, NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not enqueue kernel.", err);
         return -1;
     }
 
-    err = clEnqueueReadBuffer(queue, c_memobj, CL_TRUE, 0, sizeof(cl_int), &c, 0, NULL, NULL);
+    uint8_t* bitmap = (uint8_t*)malloc(IMAGE_SIZE_IN_BYTES);
+
+    err = clEnqueueReadBuffer(queue, bitmap_mem_obj, CL_TRUE, 0, IMAGE_SIZE_IN_BYTES, bitmap, 0, NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not read buffer.", err);
         return -1;
     }
 
-    printf("%d + %d = %d\n", a, b, c);
-
-    err = clFinish(queue);
-
-    if (err != CL_SUCCESS) {
-        printf("Error: %d. OpenCL could not finish queue.", err);
-        return -1;
-    }
+    save_raw_image("OutputImage.raw", bitmap);
+    free(bitmap);
 
     err = clReleaseKernel(kernel);
 
@@ -157,9 +160,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    err = clReleaseMemObject(a_memobj);
-    err |= clReleaseMemObject(b_memobj);
-    err |= clReleaseMemObject(c_memobj);
+    err = clReleaseMemObject(bitmap_mem_obj);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not release buffer.", err);

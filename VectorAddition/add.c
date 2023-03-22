@@ -45,8 +45,7 @@ int main(int argc, char** argv) {
     fread(source, 1, size, fp);
     fclose(fp);
 
-    cl_program program = clCreateProgramWithSource(
-        context, 1, (const char**)&source, &size, &err);
+    cl_program program = clCreateProgramWithSource(context, 1, (const char**)&source, &size, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create program.", err);
@@ -78,34 +77,29 @@ int main(int argc, char** argv) {
         b[i] = i;
     }
 
-    cl_mem a_memobj =
-        clCreateBuffer(context, CL_MEM_READ_ONLY, N * sizeof(int), NULL, &err);
+    cl_mem a_memobj = clCreateBuffer(context, CL_MEM_READ_ONLY, N * sizeof(int), NULL, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create buffer.", err);
         return -1;
     }
 
-    cl_mem b_memobj =
-        clCreateBuffer(context, CL_MEM_READ_ONLY, N * sizeof(int), NULL, &err);
+    cl_mem b_memobj = clCreateBuffer(context, CL_MEM_READ_ONLY, N * sizeof(int), NULL, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create buffer.", err);
         return -1;
     }
 
-    cl_mem c_memobj =
-        clCreateBuffer(context, CL_MEM_WRITE_ONLY, N * sizeof(int), NULL, &err);
+    cl_mem c_memobj = clCreateBuffer(context, CL_MEM_WRITE_ONLY, N * sizeof(int), NULL, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create buffer.", err);
         return -1;
     }
 
-    err = clEnqueueWriteBuffer(queue, a_memobj, CL_TRUE, 0, N * sizeof(int), a,
-                               0, NULL, NULL);
-    err |= clEnqueueWriteBuffer(queue, b_memobj, CL_TRUE, 0, N * sizeof(int), b,
-                                0, NULL, NULL);
+    err = clEnqueueWriteBuffer(queue, a_memobj, CL_TRUE, 0, N * sizeof(int), a, 0, NULL, NULL);
+    err |= clEnqueueWriteBuffer(queue, b_memobj, CL_TRUE, 0, N * sizeof(int), b, 0, NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not write buffer.", err);
@@ -123,16 +117,14 @@ int main(int argc, char** argv) {
 
     size_t global_item_size = N, local_item_size = 8;
 
-    err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global_item_size,
-                                 &local_item_size, 0, NULL, NULL);
+    err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not enqueue kernel.", err);
         return -1;
     }
 
-    err = clEnqueueReadBuffer(queue, c_memobj, CL_TRUE, 0, N * sizeof(int), c,
-                              0, NULL, NULL);
+    err = clEnqueueReadBuffer(queue, c_memobj, CL_TRUE, 0, N * sizeof(int), c, 0, NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not read buffer.", err);

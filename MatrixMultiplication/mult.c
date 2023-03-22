@@ -65,8 +65,7 @@ int main(int argc, char **argv) {
     fread(source, 1, size, fp);
     fclose(fp);
 
-    cl_program program = clCreateProgramWithSource(
-        context, 1, (const char **)&source, &size, &err);
+    cl_program program = clCreateProgramWithSource(context, 1, (const char **)&source, &size, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create program.", err);
@@ -81,22 +80,15 @@ int main(int argc, char **argv) {
     }
 
     // Create memory buffers on the device for each vector
-    cl_mem a_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
-                                      LIST_SIZE * sizeof(float), NULL, &err);
-    cl_mem b_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
-                                      LIST_SIZE * sizeof(float), NULL, &err);
-    cl_mem c_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
-                                      LIST_SIZE * sizeof(float), NULL, &err);
-    cl_mem k_mem_obj =
-        clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), NULL, &err);
+    cl_mem a_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, LIST_SIZE * sizeof(float), NULL, &err);
+    cl_mem b_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, LIST_SIZE * sizeof(float), NULL, &err);
+    cl_mem c_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY, LIST_SIZE * sizeof(float), NULL, &err);
+    cl_mem k_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), NULL, &err);
 
     // Copy the lists A and B to their respective memory buffers
-    err = clEnqueueWriteBuffer(queue, a_mem_obj, CL_TRUE, 0,
-                               LIST_SIZE * sizeof(float), A, 0, NULL, NULL);
-    err |= clEnqueueWriteBuffer(queue, b_mem_obj, CL_TRUE, 0,
-                                LIST_SIZE * sizeof(float), B, 0, NULL, NULL);
-    err |= clEnqueueWriteBuffer(queue, k_mem_obj, CL_TRUE, 0, sizeof(int), &k,
-                                0, NULL, NULL);
+    err = clEnqueueWriteBuffer(queue, a_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(float), A, 0, NULL, NULL);
+    err |= clEnqueueWriteBuffer(queue, b_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(float), B, 0, NULL, NULL);
+    err |= clEnqueueWriteBuffer(queue, k_mem_obj, CL_TRUE, 0, sizeof(int), &k, 0, NULL, NULL);
 
     // Create the OpenCL kernel
     cl_kernel kernel = clCreateKernel(program, "matrix_multiplication", &err);
@@ -113,15 +105,13 @@ int main(int argc, char **argv) {
     const size_t local_item_size = k;  // Divide work items into groups of 64
 
     // Execute the kernel on the device
-    err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL,
-                                 (const size_t *)&global_item_size,
+    err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, (const size_t *)&global_item_size,
                                  (const size_t *)&local_item_size,
                                  //  NULL, NULL,
                                  0, NULL, NULL);
 
     // Read the memory buffer C on the device to the local variable C
-    err = clEnqueueReadBuffer(queue, c_mem_obj, CL_TRUE, 0,
-                              LIST_SIZE * sizeof(float), C, 0, NULL, NULL);
+    err = clEnqueueReadBuffer(queue, c_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(float), C, 0, NULL, NULL);
 
     // Display the result to the screen
 

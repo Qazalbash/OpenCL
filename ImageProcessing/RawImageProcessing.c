@@ -97,8 +97,7 @@ int main(void) {
     fread(source, 1, size, fp);
     fclose(fp);
 
-    cl_program program = clCreateProgramWithSource(
-        context, 1, (const char**)&source, &size, &err);
+    cl_program program = clCreateProgramWithSource(context, 1, (const char**)&source, &size, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create program.", err);
@@ -119,72 +118,63 @@ int main(void) {
         return -1;
     }
 
-    cl_mem dev_bitmap_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
-                                               IMAGE_SIZE_IN_BYTES, NULL, &err);
+    cl_mem dev_bitmap_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, IMAGE_SIZE_IN_BYTES, NULL, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create buffer.", err);
         return -1;
     }
 
-    cl_mem dev_bitmap2_mem_obj = clCreateBuffer(
-        context, CL_MEM_WRITE_ONLY, IMAGE_SIZE_IN_BYTES, NULL, &err);
+    cl_mem dev_bitmap2_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY, IMAGE_SIZE_IN_BYTES, NULL, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create buffer.", err);
         return -1;
     }
 
-    cl_mem n_mem_obj =
-        clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), NULL, &err);
+    cl_mem n_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), NULL, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create buffer.", err);
         return -1;
     }
 
-    cl_mem m_mem_obj =
-        clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), NULL, &err);
+    cl_mem m_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), NULL, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create buffer.", err);
         return -1;
     }
 
-    cl_mem brightness_mem_obj =
-        clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float), NULL, &err);
+    cl_mem brightness_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float), NULL, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create buffer.", err);
         return -1;
     }
 
-    err = clEnqueueWriteBuffer(queue, dev_bitmap_mem_obj, CL_TRUE, 0,
-                               IMAGE_SIZE_IN_BYTES, host_bitmap, 0, NULL, NULL);
+    err = clEnqueueWriteBuffer(queue, dev_bitmap_mem_obj, CL_TRUE, 0, IMAGE_SIZE_IN_BYTES, host_bitmap, 0, NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not write buffer.", err);
         return -1;
     }
 
-    err = clEnqueueWriteBuffer(queue, n_mem_obj, CL_TRUE, 0, sizeof(int),
-                               &WIDTH, 0, NULL, NULL);
+    err = clEnqueueWriteBuffer(queue, n_mem_obj, CL_TRUE, 0, sizeof(int), &WIDTH, 0, NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not write buffer.", err);
         return -1;
     }
 
-    err = clEnqueueWriteBuffer(queue, m_mem_obj, CL_TRUE, 0, sizeof(int),
-                               &HEIGHT, 0, NULL, NULL);
+    err = clEnqueueWriteBuffer(queue, m_mem_obj, CL_TRUE, 0, sizeof(int), &HEIGHT, 0, NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not write buffer.", err);
         return -1;
     }
 
-    err = clEnqueueWriteBuffer(queue, brightness_mem_obj, CL_TRUE, 0,
-                               sizeof(float), &brightness, 0, NULL, NULL);
+    err = clEnqueueWriteBuffer(queue, brightness_mem_obj, CL_TRUE, 0, sizeof(float), &brightness, 0, NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not write buffer.", err);
@@ -192,28 +182,24 @@ int main(void) {
     }
 
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*)&dev_bitmap_mem_obj);
-    err |=
-        clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&dev_bitmap2_mem_obj);
+    err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&dev_bitmap2_mem_obj);
     err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&n_mem_obj);
     err |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&m_mem_obj);
-    err |=
-        clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&brightness_mem_obj);
+    err |= clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&brightness_mem_obj);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not set kernel arguments.", err);
         return -1;
     }
 
-    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global_work_size,
-                                 local_work_size, 0, NULL, NULL);
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not enqueue kernel.", err);
         return -1;
     }
 
-    err = clEnqueueReadBuffer(queue, dev_bitmap2_mem_obj, CL_TRUE, 0,
-                              IMAGE_SIZE_IN_BYTES, host_bitmap, 0, NULL, NULL);
+    err = clEnqueueReadBuffer(queue, dev_bitmap2_mem_obj, CL_TRUE, 0, IMAGE_SIZE_IN_BYTES, host_bitmap, 0, NULL, NULL);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not read buffer.", err);

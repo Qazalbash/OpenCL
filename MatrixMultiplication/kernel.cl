@@ -1,5 +1,4 @@
-__kernel void matrix_multiplication(__global const float *A,
-                                    __global const float *B, __global float *C,
+__kernel void matrix_multiplication(__global const float *A, __global const float *B, __global float *C,
                                     __global const int *N) {
     float sum = 0.0f;
 

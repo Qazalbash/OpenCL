@@ -42,8 +42,7 @@ int main(int argc, char** argv) {
     fread(source, 1, size, fp);
     fclose(fp);
 
-    cl_program program = clCreateProgramWithSource(
-        context, 1, (const char**)&source, &size, &err);
+    cl_program program = clCreateProgramWithSource(context, 1, (const char**)&source, &size, &err);
 
     if (err != CL_SUCCESS) {
         printf("Error: %d. OpenCL could not create program.", err);
@@ -68,8 +67,7 @@ int main(int argc, char** argv) {
     const size_t* global_work_size = (const size_t[]){8, 8};
     const size_t* local_work_size  = (const size_t[]){4};
 
-    clEnqueueNDRangeKernel(queue, kernel, work_dim, NULL, global_work_size,
-                           local_work_size, 0, NULL, NULL);
+    clEnqueueNDRangeKernel(queue, kernel, work_dim, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 
     clFinish(queue);
 

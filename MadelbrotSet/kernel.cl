@@ -1,6 +1,5 @@
-__kernel void set(__global const int* rz, __global const int* iz,
-                  __global int* Red, __global int* Green, __global int* Blue,
-                  __global const size_t* N) {
+__kernel void set(__global const int* rz, __global const int* iz, __global int* Red, __global int* Green,
+                  __global int* Blue, __global const size_t* N) {
     int i = get_global_id(0);
 
     // map [0, 512] to [-2, 2]
