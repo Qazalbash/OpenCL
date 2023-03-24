@@ -60,7 +60,7 @@ int main(void) {
         return -1;
     }
 
-    FILE* fp = fopen("kernel.cl", "r");
+    FILE* fp = fopen("../kernel.cl", "r");
     fseek(fp, 0, SEEK_END);
     size_t size = ftell(fp);
 

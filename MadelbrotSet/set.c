@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
             iz[N * i + j] = (int)i;
         }
 
-    const char* kernel_file = "kernel.cl";
+    const char* kernel_file = "../kernel.cl";
     const char* kernel_name = "set";
 
     cl_uint work_dim = 1;

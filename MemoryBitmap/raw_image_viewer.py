@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 
 # lets view our image
-fd = open('build/BaboonFlipped.raw', 'rb')
+fd = open(r'build\OutputImage.raw', 'rb')
 rows = 512
 cols = 512
 f = np.fromfile(fd, dtype=np.uint8, count=rows * cols)
